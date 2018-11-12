@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="37a3343d-6b3b-4c49-87c9-e153db9807e9" name="aliyun_dailyfresh" url="http://47.100.3.249">
+        <fileTransfer host="47.100.3.249" port="22" rootFolder="/home/frank/workspace/go/src/dailyfresh" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>

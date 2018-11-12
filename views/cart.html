@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <title>天天生鲜-购物车</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/reset.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+</head>
+<body>
+<div class="header_con">
+    <div class="header">
+        <div class="welcome fl">欢迎来到天天生鲜!</div>
+        <div class="fr">
+        {{if compare .username ""}}
+            <div class="login_btn fl">
+                <a href="/login">登录</a>
+                <span>|</span>
+                <a href="/register">注册</a>
+            </div>
+        {{else}}
+            <div class="login_btn fl">
+                欢迎您：<em>{{.username}}</em>
+                <span>|</span>
+                <a href="/fresh/logout">退出</a>
+            </div>
+        {{end}}
+            <div class="user_link fl">
+                <span>|</span>
+                <a href="/fresh/userCenterInfo">用户中心</a>
+                <span>|</span>
+                <a href="/fresh/cart">我的购物车</a>
+                <span>|</span>
+                <a href="user_center_order.html">我的订单</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="search_bar clearfix">
+    <a href="/" class="logo fl"><img src="/static/images/logo.png"></a>
+    <div class="search_con fl">
+        <form action="/goodsSearch" method="post">
+            <input type="text" class="input_text fl" name="goodsName" placeholder="搜索商品">
+            <input type="submit" class="input_btn fr" name="" value="搜索">
+        </form>
+    </div>
+    <div class="guest_cart fr">
+        <a href="/fresh/cart" class="cart_name fl">我的购物车</a>
+        <div class="goods_count fl" id="show_count">1</div>
+    </div>
+</div>
+
+<div class="total_count">全部商品<em>{{.totalCount}}</em>件</div>
+<ul class="cart_list_th clearfix">
+    <li class="col01">商品名称</li>
+    <li class="col02">商品单位</li>
+    <li class="col03">商品价格</li>
+    <li class="col04">数量</li>
+    <li class="col05">小计</li>
+    <li class="col06">操作</li>
+</ul>
+<form action="/fresh/showOrder" method="post">
+{{range .cartItemSlice}}
+    <ul class="cart_list_td clearfix">
+        <li class="col01"><input type="checkbox" name="skuid" value="{{.GoodsSKU.Id}}" checked></li>
+        <li class="col02"><img src="http://47.100.3.249:8888/{{.GoodsSKU.Image}}"></li>
+        <li class="col03">奇异果<br><em>{{.GoodsSKU.Price}}元/{{.GoodsSKU.Unite}}</em></li>
+        <li class="col04">{{.GoodsSKU.Unite}}</li>
+        <li class="col05">{{.GoodsSKU.Price}}元</li>
+        <li class="col06">
+            <div class="num_add">
+                <a href="javascript:;" class="add fl">+</a>
+                <input type="text" skuid="{{.GoodsSKU.Id}}" class="num_show fl" value="{{.Count}}">
+                <a href="javascript:;" class="minus fl">-</a>
+            </div>
+        </li>
+        <li class="col07">{{.Amount}}元</li>
+        <li class="col08"><a href="javascript:;" class="deleteCart" skuid="{{.GoodsSKU.Id}}">删除</a></li>
+    </ul>
+{{end}}
+
+    <ul class="settlements">
+        <li class="col01"><input type="checkbox" name="" checked=""></li>
+        <li class="col02">全选</li>
+        <li class="col03">合计(不含运费)：<span>¥</span><em>{{.totalAmount}}</em><br>共计<b>{{.totalCount}}</b>件商品</li>
+        <li class="col04"><input type="submit" value="去结算"></li>
+    </ul>
+</form>
+<div class="footer">
+    <div class="foot_link">
+        <a href="#">关于我们</a>
+        <span>|</span>
+        <a href="#">联系我们</a>
+        <span>|</span>
+        <a href="#">招聘人才</a>
+        <span>|</span>
+        <a href="#">友情链接</a>
+    </div>
+    <p>CopyRight © 2016 北京天天生鲜信息技术有限公司 All Rights Reserved</p>
+    <p>电话：010-****888 京ICP备*******8号</p>
+</div>
+
+</body>
+</html>
+<script type="application/javascript" src="/static/js/jquery-1.12.4.min.js"></script>
+<script>
+    $(".add").click(function () {
+        let count = $(this).next().val();
+        count = parseInt(count) + 1;
+        let skuid = $(this).next().attr("skuid");
+        let params = {skuid, count};
+        $.post("/fresh/UpdateCart", params, res => {
+            if (res.code == 200) {
+                $(this).next().val(count);
+                let price = $(this).parents(".cart_list_td").children(".col05").text();
+                price = parseInt(price);
+                let amount = price * count;
+                $(this).parents(".cart_list_td").children(".col07").text(amount + "元");
+                let checked = $(this).parents(".cart_list_td").find(":checkbox").prop("checked");
+                if (checked) {
+                    updateState();
+                }
+            } else {
+                alert(res.msg)
+            }
+        })
+    });
+
+    $(".minus").click(function () {
+        let count = $(this).prev().val();
+        count = parseInt(count) - 1;
+        if (1 >= count) {
+            count = 1;
+        }
+        let skuid = $(this).prev().attr("skuid");
+        let params = {skuid, count};
+        $.post("/fresh/UpdateCart", params, res => {
+            if (res.code == 200) {
+                $(this).prev().val(count);
+                let price = $(this).parents(".cart_list_td").children(".col05").text();
+                price = parseInt(price);
+                let amount = price * count;
+                $(this).parents(".cart_list_td").children(".col07").text(amount + "元");
+                let checked = $(this).parents(".cart_list_td").find(":checkbox").prop("checked");
+                if (checked) {
+                    updateState();
+                }
+            } else {
+                alert(res.msg)
+            }
+        })
+    });
+    let preCount = 0;
+    $(".num_show").focus(function () {
+        var count = $(this).val();
+        preCount = parseInt(count)
+    });
+    $(".num_show").blur(function () {
+        let count = $(this).val();
+        if (isNaN(count) || count.trim().length == 0 || 1 > parseInt(count)) {
+            count = preCount
+        }
+        let skuid = $(this).attr("skuid");
+        let params = {skuid, count};
+        $.post("/fresh/UpdateCart", params, res => {
+            if (res.code == 200) {
+                $(this).val(count);
+                let price = $(this).parents(".cart_list_td").children(".col05").text();
+                price = parseInt(price);
+                let amount = price * count;
+                $(this).parents(".cart_list_td").children(".col07").text(amount + "元");
+                let checked = $(this).parents(".cart_list_td").find(":checkbox").prop("checked");
+                if (checked) {
+                    updateState();
+                }
+            } else {
+                alert(res.msg)
+            }
+        })
+    });
+    //全选反选的逻辑
+    $(".settlements").find(":checkbox").change(function () {
+        let checked = $(".settlements").find(":checkbox").prop("checked");
+        $(".cart_list_td").find(":checkbox").each(function () {
+            $(this).prop("checked", checked)
+        });
+        updateState();
+    });
+    //点击单个条目的checkbox逻辑实现
+    $(".cart_list_td").find(":checkbox").change(function () {
+        let checkboxCount = $(".cart_list_td").find(":checkbox").length;
+        let checkedCount = $(".cart_list_td").find(":checked").length;
+        if (checkboxCount == checkedCount) {
+            $(".settlements").find(":checkbox").prop("checked", "checked");
+        } else {
+            $(".settlements").find(":checkbox").prop("checked", "");
+        }
+        updateState();
+    });
+    $(".deleteCart").click(function () {
+        var skuid = $(this).attr("skuid");
+        $.post("/fresh/deteteCartItem", {skuid}, res => {
+            if (res.code == 200) {
+                alert(JSON.stringify(res));
+                $(this).parents("ul").remove();
+                updateState();
+            } else {
+                alert(res.msg);
+            }
+        })
+    });
+    let updateState = () => {
+        var totalCount = 0;
+        var totalAmount = 0;
+        $(".cart_list_td").find(":checked").parents("ul").each(function () {
+            let count = $(this).find(".num_show").val();
+            let price = $(this).children('.col07').text();
+            count = parseInt(count);
+            let amount = parseInt(price);
+            totalCount += count;
+            totalAmount += amount;
+        });
+        $(".settlements").children(".col03").children("em").text(totalAmount);
+        $(".settlements").children(".col03").children("b").text(totalCount);
+        $(".total_count").children("em").text(totalCount);
+    }
+
+</script>
